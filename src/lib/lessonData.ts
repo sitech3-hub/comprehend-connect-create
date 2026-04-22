@@ -12,6 +12,8 @@ export type Part = {
   vocab: VocabQ[];
   grammar: GrammarQ[];
   reflectionPrompt: string;
+  reflectionConcepts: string[];
+  reflectionKeywords: string[];
 };
 
 export const PARTS: Part[] = [
