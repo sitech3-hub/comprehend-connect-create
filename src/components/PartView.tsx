@@ -6,8 +6,20 @@ import { PARTS } from "@/lib/lessonData";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { CheckCircle2, Circle, Lightbulb, Save, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, Circle, Cloud, CloudOff, Lightbulb, Loader2, Save, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+type SaveStatus = "idle" | "saving" | "success" | "error";
+
+function timeAgo(iso: string | null) {
+  if (!iso) return "저장 기록 없음";
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 10) return "방금 전 저장됨";
+  if (diff < 60) return `${Math.floor(diff)}초 전 저장됨`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전 저장됨`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전 저장됨`;
+  return `${Math.floor(diff / 86400)}일 전 저장됨`;
+}
 
 type SubmissionRow = {
   vocab_answers: Record<string, string>;
