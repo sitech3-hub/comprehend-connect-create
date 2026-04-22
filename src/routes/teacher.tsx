@@ -1,11 +1,16 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { Criteria, isPartCompleteWith, useCriteria } from "@/hooks/useCriteria";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { PARTS } from "@/lib/lessonData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
+import { Settings2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -57,20 +62,13 @@ type StudentRow = {
 type SortKey = "name" | "completionRate" | "lastSavedAt";
 type SortDir = "asc" | "desc";
 
-const REQUIRED_VOCAB = 5;
-const REQUIRED_GRAMMAR = 3;
-
-// A part is "complete" when all answers are filled in + reflection >= 10 words.
-function isPartComplete(s: Sub) {
-  const words = s.reflection.trim().split(/\s+/).filter(Boolean).length;
-  const vocabCount = Object.keys(s.vocab_answers ?? {}).length;
-  const grammarCount = Object.keys(s.grammar_answers ?? {}).length;
-  return (
-    words >= 10 &&
-    s.inquiry_answer.trim().length > 0 &&
-    vocabCount >= REQUIRED_VOCAB &&
-    grammarCount >= REQUIRED_GRAMMAR
-  );
+function isPartComplete(s: Sub, c: Criteria) {
+  return isPartCompleteWith(c, {
+    reflection: s.reflection,
+    inquiry_answer: s.inquiry_answer,
+    vocab_answers: s.vocab_answers,
+    grammar_answers: s.grammar_answers,
+  });
 }
 
 function timeAgo(iso: string | null) {
@@ -84,6 +82,7 @@ function timeAgo(iso: string | null) {
 
 function TeacherPage() {
   const { user, loading, isTeacher } = useAuth();
+  const { criteria, refresh: refreshCriteria } = useCriteria();
   const [subs, setSubs] = useState<Sub[]>([]);
   const [fetching, setFetching] = useState(true);
   const [openUser, setOpenUser] = useState<string | null>(null);
@@ -92,6 +91,7 @@ function TeacherPage() {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("completionRate");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (!isTeacher) return;
@@ -128,7 +128,7 @@ function TeacherPage() {
       }
     }
     for (const r of byUser.values()) {
-      r.completed = Array.from(r.parts.values()).filter(isPartComplete).length;
+      r.completed = Array.from(r.parts.values()).filter((s) => isPartComplete(s, criteria)).length;
       r.completionRate = Math.round((r.completed / 3) * 100);
     }
     let arr = Array.from(byUser.values());
@@ -146,8 +146,8 @@ function TeacherPage() {
         if (filterPart) {
           const s = r.parts.get(filterPart);
           if (filterStatus === "none") return !s;
-          if (filterStatus === "complete") return s && isPartComplete(s);
-          if (filterStatus === "incomplete") return s && !isPartComplete(s);
+          if (filterStatus === "complete") return s && isPartComplete(s, criteria);
+          if (filterStatus === "incomplete") return s && !isPartComplete(s, criteria);
         } else {
           if (filterStatus === "complete") return r.completed === 3;
           if (filterStatus === "incomplete") return r.completed > 0 && r.completed < 3;
@@ -169,7 +169,7 @@ function TeacherPage() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return arr;
-  }, [subs, search, filterPart, filterStatus, sortKey, sortDir]);
+  }, [subs, search, filterPart, filterStatus, sortKey, sortDir, criteria]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -215,8 +215,22 @@ function TeacherPage() {
               <FileCheck2 className="h-4 w-4 text-accent" />
               <span className="font-bold">{subs.length}</span>개의 제출
             </div>
+            <Button variant="outline" size="sm" onClick={() => setSettingsOpen((o) => !o)}>
+              <Settings2 className="mr-2 h-4 w-4" />
+              완료 기준 설정
+            </Button>
           </div>
         </div>
+
+        {settingsOpen && (
+          <CriteriaPanel
+            criteria={criteria}
+            onSaved={() => {
+              refreshCriteria();
+            }}
+            onClose={() => setSettingsOpen(false)}
+          />
+        )}
 
         {/* Filters */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -330,7 +344,7 @@ function TeacherPage() {
                         </TableCell>
                         {[1, 2, 3].map((p) => {
                           const s = r.parts.get(p);
-                          const done = s ? isPartComplete(s) : false;
+                          const done = s ? isPartComplete(s, criteria) : false;
                           return (
                             <TableCell key={p} className="text-center">
                               <span
@@ -485,6 +499,144 @@ function Field({ label, text }: { label: string; text: string }) {
       <p className="whitespace-pre-wrap rounded-md border border-border bg-background p-3 text-sm leading-relaxed">
         {text || <span className="text-muted-foreground">(작성 안 됨)</span>}
       </p>
+    </div>
+  );
+}
+
+function CriteriaPanel({
+  criteria,
+  onSaved,
+  onClose,
+}: {
+  criteria: Criteria;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const [draft, setDraft] = useState<Criteria>(criteria);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setDraft(criteria);
+  }, [criteria]);
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from("completion_criteria")
+      .update({
+        min_reflection_words: draft.min_reflection_words,
+        min_vocab_answers: draft.min_vocab_answers,
+        min_grammar_answers: draft.min_grammar_answers,
+        require_inquiry: draft.require_inquiry,
+      })
+      .eq("singleton", true);
+    setSaving(false);
+    if (error) toast.error("저장 실패: " + error.message);
+    else {
+      toast.success("완료 기준이 업데이트되었어요");
+      onSaved();
+    }
+  };
+
+  const reset = () => {
+    setDraft({
+      min_reflection_words: 10,
+      min_vocab_answers: 5,
+      min_grammar_answers: 3,
+      require_inquiry: true,
+    });
+  };
+
+  return (
+    <div className="mb-4 rounded-xl border border-primary/30 bg-primary/5 p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-bold">완료 기준 설정</h2>
+          <p className="text-xs text-muted-foreground">
+            아래 조건을 모두 만족해야 해당 Part가 "완료"로 표시돼요. 학생 진행률에도 즉시 반영돼요.
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          닫기
+        </button>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <NumberField
+          label="영작 최소 단어 수"
+          value={draft.min_reflection_words}
+          onChange={(v) => setDraft({ ...draft, min_reflection_words: v })}
+        />
+        <NumberField
+          label="어휘 최소 정답 수"
+          max={5}
+          value={draft.min_vocab_answers}
+          onChange={(v) => setDraft({ ...draft, min_vocab_answers: v })}
+        />
+        <NumberField
+          label="문법 최소 정답 수"
+          max={3}
+          value={draft.min_grammar_answers}
+          onChange={(v) => setDraft({ ...draft, min_grammar_answers: v })}
+        />
+      </div>
+
+      <div className="mt-4 flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
+        <div>
+          <Label className="text-sm font-medium">개념탐구 도입 답변 필수</Label>
+          <p className="text-xs text-muted-foreground">
+            끄면 도입 질문이 비어 있어도 완료 처리돼요.
+          </p>
+        </div>
+        <Switch
+          checked={draft.require_inquiry}
+          onCheckedChange={(v) => setDraft({ ...draft, require_inquiry: v })}
+        />
+      </div>
+
+      <div className="mt-5 flex items-center justify-end gap-2">
+        <Button variant="ghost" size="sm" onClick={reset}>
+          기본값
+        </Button>
+        <Button onClick={save} disabled={saving} size="sm">
+          {saving ? "저장 중..." : "기준 저장"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  onChange,
+  max,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  max?: number;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-background p-3">
+      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
+      <Input
+        type="number"
+        min={0}
+        max={max}
+        value={value}
+        onChange={(e) => {
+          const n = Number(e.target.value);
+          if (Number.isFinite(n) && n >= 0) onChange(n);
+        }}
+        className="mt-1 h-9"
+      />
+      {max !== undefined && (
+        <p className="mt-1 text-[10px] text-muted-foreground">최대 {max}개 출제</p>
+      )}
     </div>
   );
 }

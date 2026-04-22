@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { isPartCompleteWith, useCriteria } from "@/hooks/useCriteria";
 
 export type PartProgress = {
   part: number;
@@ -8,24 +9,9 @@ export type PartProgress = {
   completed: boolean;
 };
 
-// A part is considered "complete" when reflection has at least 10 words
-// AND inquiry_answer is non-empty AND there is at least one vocab/grammar answer.
-function isComplete(row: {
-  reflection: string;
-  inquiry_answer: string;
-  vocab_answers: Record<string, string>;
-  grammar_answers: Record<string, string>;
-}) {
-  const words = row.reflection.trim().split(/\s+/).filter(Boolean).length;
-  const hasInquiry = row.inquiry_answer.trim().length > 0;
-  const hasQuiz =
-    Object.keys(row.vocab_answers || {}).length > 0 ||
-    Object.keys(row.grammar_answers || {}).length > 0;
-  return words >= 10 && hasInquiry && hasQuiz;
-}
-
 export function useProgress() {
   const { user } = useAuth();
+  const { criteria } = useCriteria();
   const [progress, setProgress] = useState<Record<number, PartProgress>>({});
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +27,7 @@ export function useProgress() {
       map[r.part] = {
         part: r.part,
         updated_at: r.updated_at,
-        completed: isComplete({
+        completed: isPartCompleteWith(criteria, {
           reflection: r.reflection,
           inquiry_answer: r.inquiry_answer,
           vocab_answers: (r.vocab_answers as Record<string, string>) || {},
@@ -51,7 +37,7 @@ export function useProgress() {
     });
     setProgress(map);
     setLoading(false);
-  }, [user]);
+  }, [user, criteria]);
 
   useEffect(() => {
     refresh();
