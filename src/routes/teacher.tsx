@@ -502,3 +502,141 @@ function Field({ label, text }: { label: string; text: string }) {
     </div>
   );
 }
+
+function CriteriaPanel({
+  criteria,
+  onSaved,
+  onClose,
+}: {
+  criteria: Criteria;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const [draft, setDraft] = useState<Criteria>(criteria);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setDraft(criteria);
+  }, [criteria]);
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from("completion_criteria")
+      .update({
+        min_reflection_words: draft.min_reflection_words,
+        min_vocab_answers: draft.min_vocab_answers,
+        min_grammar_answers: draft.min_grammar_answers,
+        require_inquiry: draft.require_inquiry,
+      })
+      .eq("singleton", true);
+    setSaving(false);
+    if (error) toast.error("저장 실패: " + error.message);
+    else {
+      toast.success("완료 기준이 업데이트되었어요");
+      onSaved();
+    }
+  };
+
+  const reset = () => {
+    setDraft({
+      min_reflection_words: 10,
+      min_vocab_answers: 5,
+      min_grammar_answers: 3,
+      require_inquiry: true,
+    });
+  };
+
+  return (
+    <div className="mb-4 rounded-xl border border-primary/30 bg-primary/5 p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-bold">완료 기준 설정</h2>
+          <p className="text-xs text-muted-foreground">
+            아래 조건을 모두 만족해야 해당 Part가 "완료"로 표시돼요. 학생 진행률에도 즉시 반영돼요.
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          닫기
+        </button>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <NumberField
+          label="영작 최소 단어 수"
+          value={draft.min_reflection_words}
+          onChange={(v) => setDraft({ ...draft, min_reflection_words: v })}
+        />
+        <NumberField
+          label="어휘 최소 정답 수"
+          max={5}
+          value={draft.min_vocab_answers}
+          onChange={(v) => setDraft({ ...draft, min_vocab_answers: v })}
+        />
+        <NumberField
+          label="문법 최소 정답 수"
+          max={3}
+          value={draft.min_grammar_answers}
+          onChange={(v) => setDraft({ ...draft, min_grammar_answers: v })}
+        />
+      </div>
+
+      <div className="mt-4 flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
+        <div>
+          <Label className="text-sm font-medium">개념탐구 도입 답변 필수</Label>
+          <p className="text-xs text-muted-foreground">
+            끄면 도입 질문이 비어 있어도 완료 처리돼요.
+          </p>
+        </div>
+        <Switch
+          checked={draft.require_inquiry}
+          onCheckedChange={(v) => setDraft({ ...draft, require_inquiry: v })}
+        />
+      </div>
+
+      <div className="mt-5 flex items-center justify-end gap-2">
+        <Button variant="ghost" size="sm" onClick={reset}>
+          기본값
+        </Button>
+        <Button onClick={save} disabled={saving} size="sm">
+          {saving ? "저장 중..." : "기준 저장"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  onChange,
+  max,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  max?: number;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-background p-3">
+      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
+      <Input
+        type="number"
+        min={0}
+        max={max}
+        value={value}
+        onChange={(e) => {
+          const n = Number(e.target.value);
+          if (Number.isFinite(n) && n >= 0) onChange(n);
+        }}
+        className="mt-1 h-9"
+      />
+      {max !== undefined && (
+        <p className="mt-1 text-[10px] text-muted-foreground">최대 {max}개 출제</p>
+      )}
+    </div>
+  );
+}
