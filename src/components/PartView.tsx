@@ -26,11 +26,13 @@ function formatSavedAt(iso: string | null) {
 export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
   const part = PARTS.find((p) => p.id === partId)!;
   const { user } = useAuth();
+  const { refresh } = useProgress();
   const [vocab, setVocab] = useState<Record<string, string>>({});
   const [grammar, setGrammar] = useState<Record<string, string>>({});
   const [reflection, setReflection] = useState("");
   const [inquiry, setInquiry] = useState("");
   const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
