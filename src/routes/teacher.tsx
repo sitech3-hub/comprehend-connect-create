@@ -169,7 +169,7 @@ function TeacherPage() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return arr;
-  }, [subs, search, filterPart, filterStatus, sortKey, sortDir]);
+  }, [subs, search, filterPart, filterStatus, sortKey, sortDir, criteria]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
