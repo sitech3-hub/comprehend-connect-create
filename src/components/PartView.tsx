@@ -36,10 +36,10 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
 
   useEffect(() => {
     if (!user) return;
-    setVocab({}); setGrammar({}); setReflection(""); setInquiry("");
+    setVocab({}); setGrammar({}); setReflection(""); setInquiry(""); setLastSavedAt(null);
     supabase
       .from("submissions")
-      .select("vocab_answers, grammar_answers, reflection, inquiry_answer")
+      .select("vocab_answers, grammar_answers, reflection, inquiry_answer, updated_at")
       .eq("user_id", user.id)
       .eq("part", partId)
       .maybeSingle()
@@ -50,6 +50,7 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
         setGrammar((row.grammar_answers as Record<string, string>) || {});
         setReflection(row.reflection || "");
         setInquiry(row.inquiry_answer || "");
+        setLastSavedAt(row.updated_at);
       });
   }, [user, partId]);
 
@@ -71,7 +72,18 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
     );
     setSaving(false);
     if (error) toast.error("저장 실패: " + error.message);
-    else toast.success("저장되었어요 ✓");
+    else {
+      toast.success("저장되었어요 ✓");
+      setLastSavedAt(new Date().toISOString());
+      refresh();
+    }
+  };
+
+  const insertKeyword = (kw: string) => {
+    setReflection((prev) => {
+      const sep = prev.length === 0 || /\s$/.test(prev) ? "" : " ";
+      return prev + sep + kw + " ";
+    });
   };
 
   return (
