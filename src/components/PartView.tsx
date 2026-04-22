@@ -107,6 +107,20 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 pb-20">
+      {/* Top save status bar */}
+      <div
+        className={cn(
+          "sticky top-2 z-20 flex items-center justify-between gap-3 rounded-xl border px-4 py-2 text-sm shadow-sm backdrop-blur",
+          saveStatus === "saving" && "border-primary/40 bg-primary/10",
+          saveStatus === "error" && "border-destructive/40 bg-destructive/10",
+          saveStatus === "success" && "border-accent/40 bg-accent/10",
+          saveStatus === "idle" && "border-border bg-card/90",
+        )}
+      >
+        <SaveStatusIndicator status={saveStatus} error={saveError} lastSavedAt={lastSavedAt} />
+        <span className="hidden text-xs text-muted-foreground sm:inline">자동으로 30초마다 표시 갱신</span>
+      </div>
+
       {/* Header */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
         <p className="text-xs font-medium uppercase tracking-wider text-primary">{part.pages}</p>
