@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { PARTS, type Part } from "@/lib/lessonData";
+import { useProgress } from "@/hooks/useProgress";
+import { PARTS } from "@/lib/lessonData";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -13,7 +14,14 @@ type SubmissionRow = {
   grammar_answers: Record<string, string>;
   reflection: string;
   inquiry_answer: string;
+  updated_at: string;
 };
+
+function formatSavedAt(iso: string | null) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return d.toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" });
+}
 
 export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
   const part = PARTS.find((p) => p.id === partId)!;
