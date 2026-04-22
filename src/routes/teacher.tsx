@@ -330,7 +330,7 @@ function TeacherPage() {
                         </TableCell>
                         {[1, 2, 3].map((p) => {
                           const s = r.parts.get(p);
-                          const done = s ? isPartComplete(s) : false;
+                          const done = s ? isPartComplete(s, criteria) : false;
                           return (
                             <TableCell key={p} className="text-center">
                               <span
