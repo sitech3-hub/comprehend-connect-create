@@ -76,7 +76,8 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
 
   const save = async () => {
     if (!user) return;
-    setSaving(true);
+    setSaveStatus("saving");
+    setSaveError(null);
     const { error } = await supabase.from("submissions").upsert(
       {
         user_id: user.id,
@@ -90,11 +91,14 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
       },
       { onConflict: "user_id,part" },
     );
-    setSaving(false);
-    if (error) toast.error("저장 실패: " + error.message);
-    else {
-      toast.success("저장되었어요 ✓");
+    if (error) {
+      setSaveStatus("error");
+      setSaveError(error.message);
+      toast.error("저장 실패: " + error.message);
+    } else {
+      setSaveStatus("success");
       setLastSavedAt(new Date().toISOString());
+      toast.success("저장되었어요 ✓");
       refresh();
     }
   };
