@@ -1,5 +1,6 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
+import { useProgress } from "@/hooks/useProgress";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Sparkles, Leaf } from "lucide-react";
@@ -10,9 +11,10 @@ export const Route = createFileRoute("/")({
 });
 
 function LoginPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, isTeacher } = useAuth();
+  const { loading: progressLoading, nextPartId } = useProgress();
 
-  if (loading) {
+  if (loading || (user && progressLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Loading...
@@ -20,7 +22,10 @@ function LoginPage() {
     );
   }
 
-  if (user) return <Navigate to="/parts/$partId" params={{ partId: "1" }} />;
+  if (user) {
+    if (isTeacher) return <Navigate to="/teacher" />;
+    return <Navigate to="/parts/$partId" params={{ partId: String(nextPartId()) }} />;
+  }
 
   const signIn = async () => {
     const result = await lovable.auth.signInWithOAuth("google", {

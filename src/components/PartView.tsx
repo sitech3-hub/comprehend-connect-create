@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { PARTS, type Part } from "@/lib/lessonData";
+import { useProgress } from "@/hooks/useProgress";
+import { PARTS } from "@/lib/lessonData";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -13,23 +14,32 @@ type SubmissionRow = {
   grammar_answers: Record<string, string>;
   reflection: string;
   inquiry_answer: string;
+  updated_at: string;
 };
+
+function formatSavedAt(iso: string | null) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return d.toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" });
+}
 
 export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
   const part = PARTS.find((p) => p.id === partId)!;
   const { user } = useAuth();
+  const { refresh } = useProgress();
   const [vocab, setVocab] = useState<Record<string, string>>({});
   const [grammar, setGrammar] = useState<Record<string, string>>({});
   const [reflection, setReflection] = useState("");
   const [inquiry, setInquiry] = useState("");
   const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    setVocab({}); setGrammar({}); setReflection(""); setInquiry("");
+    setVocab({}); setGrammar({}); setReflection(""); setInquiry(""); setLastSavedAt(null);
     supabase
       .from("submissions")
-      .select("vocab_answers, grammar_answers, reflection, inquiry_answer")
+      .select("vocab_answers, grammar_answers, reflection, inquiry_answer, updated_at")
       .eq("user_id", user.id)
       .eq("part", partId)
       .maybeSingle()
@@ -40,6 +50,7 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
         setGrammar((row.grammar_answers as Record<string, string>) || {});
         setReflection(row.reflection || "");
         setInquiry(row.inquiry_answer || "");
+        setLastSavedAt(row.updated_at);
       });
   }, [user, partId]);
 
@@ -61,7 +72,18 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
     );
     setSaving(false);
     if (error) toast.error("저장 실패: " + error.message);
-    else toast.success("저장되었어요 ✓");
+    else {
+      toast.success("저장되었어요 ✓");
+      setLastSavedAt(new Date().toISOString());
+      refresh();
+    }
+  };
+
+  const insertKeyword = (kw: string) => {
+    setReflection((prev) => {
+      const sep = prev.length === 0 || /\s$/.test(prev) ? "" : " ";
+      return prev + sep + kw + " ";
+    });
   };
 
   return (
@@ -154,19 +176,61 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
         <p className="font-medium leading-relaxed text-inquiry-foreground">
           {part.reflectionPrompt}
         </p>
+
+        <div className="mt-5 rounded-xl border border-inquiry-foreground/15 bg-background/60 p-4">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-inquiry-foreground/80">
+            🧭 핵심 개념 (Key Concepts)
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {part.reflectionConcepts.map((c) => (
+              <span
+                key={c}
+                className="rounded-full border border-inquiry-foreground/30 bg-inquiry px-3 py-1 text-xs font-semibold text-inquiry-foreground"
+              >
+                {c}
+              </span>
+            ))}
+          </div>
+
+          <p className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-inquiry-foreground/80">
+            💡 도움 키워드 (클릭해서 추가)
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {part.reflectionKeywords.map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => insertKeyword(k)}
+                className="group flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground transition-all hover:border-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                <span className="opacity-60 group-hover:opacity-100">+</span>
+                {k}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <Textarea
           value={reflection}
           onChange={(e) => setReflection(e.target.value)}
-          placeholder="Write your reflection in English..."
+          placeholder="Write your reflection in English... (위의 키워드를 클릭하면 자동으로 추가돼요)"
           className="mt-4 min-h-44 bg-background"
         />
-        <p className="mt-2 text-right text-xs text-muted-foreground">{reflection.trim().split(/\s+/).filter(Boolean).length} words</p>
+        <p className="mt-2 text-right text-xs text-muted-foreground">
+          {reflection.trim().split(/\s+/).filter(Boolean).length} words
+        </p>
       </Section>
 
       {/* Save bar */}
-      <div className="sticky bottom-4 z-30 mx-auto flex max-w-6xl items-center justify-between rounded-xl border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur">
-        <p className="text-sm text-muted-foreground">
-          답변은 안전하게 저장되며 교사가 확인할 수 있어요.
+      <div className="sticky bottom-4 z-30 mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur">
+        <p className="text-xs text-muted-foreground sm:text-sm">
+          {lastSavedAt ? (
+            <>
+              마지막 저장: <span className="font-medium text-foreground">{formatSavedAt(lastSavedAt)}</span>
+            </>
+          ) : (
+            <>답변은 안전하게 저장되며 교사가 확인할 수 있어요.</>
+          )}
         </p>
         <Button onClick={save} disabled={saving} size="lg">
           <Save className="mr-2 h-4 w-4" />

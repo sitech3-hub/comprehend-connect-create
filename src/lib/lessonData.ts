@@ -12,6 +12,8 @@ export type Part = {
   vocab: VocabQ[];
   grammar: GrammarQ[];
   reflectionPrompt: string;
+  reflectionConcepts: string[];
+  reflectionKeywords: string[];
 };
 
 export const PARTS: Part[] = [
@@ -98,6 +100,12 @@ export const PARTS: Part[] = [
     ],
     reflectionPrompt:
       "Concept-Based Reflection: How does your personal relationship with food connect to global sustainability? Write 4–6 sentences in English using at least two key vocabulary words from this part.",
+    reflectionConcepts: ["Sustainability", "Identity", "Interdependence", "Responsibility"],
+    reflectionKeywords: [
+      "essence of life", "sustainable diet", "greenhouse gas emissions",
+      "agricultural land", "cultural identity", "future generations",
+      "personally", "I believe that", "for example",
+    ],
   },
   {
     id: 2,
@@ -185,6 +193,12 @@ export const PARTS: Part[] = [
     ],
     reflectionPrompt:
       "Concept-Based Reflection: Would you eat lab-grown meat or insect protein? Explain by connecting the concepts of innovation, sustainability, and cultural identity. Write 4–6 sentences in English.",
+    reflectionConcepts: ["Innovation", "Acceptance", "Tradition", "Cultural Identity"],
+    reflectionKeywords: [
+      "alternative protein", "lab-grown meat", "insect flour",
+      "cost-effective", "barrier", "overcome", "win the public over",
+      "in my opinion", "however", "on the other hand",
+    ],
   },
   {
     id: 3,
@@ -272,5 +286,11 @@ export const PARTS: Part[] = [
     ],
     reflectionPrompt:
       "Concept-Based Reflection: 'It's time for everyone to be a little more familiar with the unfamiliar.' What does this mean for you personally? Connect to the concepts of change, responsibility, and global citizenship. Write 5–7 sentences in English.",
+    reflectionConcepts: ["Change", "Responsibility", "Interdependence", "Global Citizenship"],
+    reflectionKeywords: [
+      "3D printed food", "algae", "trapping carbon",
+      "natural disaster", "global warming", "individual diet",
+      "as a global citizen", "I will", "step forward", "the unfamiliar",
+    ],
   },
 ];
