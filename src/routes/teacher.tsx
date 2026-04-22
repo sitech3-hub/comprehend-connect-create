@@ -146,8 +146,8 @@ function TeacherPage() {
         if (filterPart) {
           const s = r.parts.get(filterPart);
           if (filterStatus === "none") return !s;
-          if (filterStatus === "complete") return s && isPartComplete(s);
-          if (filterStatus === "incomplete") return s && !isPartComplete(s);
+          if (filterStatus === "complete") return s && isPartComplete(s, criteria);
+          if (filterStatus === "incomplete") return s && !isPartComplete(s, criteria);
         } else {
           if (filterStatus === "complete") return r.completed === 3;
           if (filterStatus === "incomplete") return r.completed > 0 && r.completed < 3;
