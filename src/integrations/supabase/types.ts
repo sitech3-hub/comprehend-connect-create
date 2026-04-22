@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      completion_criteria: {
+        Row: {
+          id: string
+          min_grammar_answers: number
+          min_reflection_words: number
+          min_vocab_answers: number
+          require_inquiry: boolean
+          singleton: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          min_grammar_answers?: number
+          min_reflection_words?: number
+          min_vocab_answers?: number
+          require_inquiry?: boolean
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          min_grammar_answers?: number
+          min_reflection_words?: number
+          min_vocab_answers?: number
+          require_inquiry?: boolean
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       submissions: {
         Row: {
           created_at: string
