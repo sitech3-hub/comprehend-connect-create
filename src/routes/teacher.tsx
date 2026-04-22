@@ -128,7 +128,7 @@ function TeacherPage() {
       }
     }
     for (const r of byUser.values()) {
-      r.completed = Array.from(r.parts.values()).filter(isPartComplete).length;
+      r.completed = Array.from(r.parts.values()).filter((s) => isPartComplete(s, criteria)).length;
       r.completionRate = Math.round((r.completed / 3) * 100);
     }
     let arr = Array.from(byUser.values());
