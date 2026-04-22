@@ -309,9 +309,8 @@ function TeacherPage() {
                 {rows.map((r) => {
                   const open = openUser === r.user_id;
                   return (
-                    <>
+                    <Fragment key={r.user_id}>
                       <TableRow
-                        key={r.user_id}
                         className="cursor-pointer"
                         onClick={() => setOpenUser(open ? null : r.user_id)}
                       >
