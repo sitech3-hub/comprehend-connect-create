@@ -62,20 +62,13 @@ type StudentRow = {
 type SortKey = "name" | "completionRate" | "lastSavedAt";
 type SortDir = "asc" | "desc";
 
-const REQUIRED_VOCAB = 5;
-const REQUIRED_GRAMMAR = 3;
-
-// A part is "complete" when all answers are filled in + reflection >= 10 words.
-function isPartComplete(s: Sub) {
-  const words = s.reflection.trim().split(/\s+/).filter(Boolean).length;
-  const vocabCount = Object.keys(s.vocab_answers ?? {}).length;
-  const grammarCount = Object.keys(s.grammar_answers ?? {}).length;
-  return (
-    words >= 10 &&
-    s.inquiry_answer.trim().length > 0 &&
-    vocabCount >= REQUIRED_VOCAB &&
-    grammarCount >= REQUIRED_GRAMMAR
-  );
+function isPartComplete(s: Sub, c: Criteria) {
+  return isPartCompleteWith(c, {
+    reflection: s.reflection,
+    inquiry_answer: s.inquiry_answer,
+    vocab_answers: s.vocab_answers,
+    grammar_answers: s.grammar_answers,
+  });
 }
 
 function timeAgo(iso: string | null) {
