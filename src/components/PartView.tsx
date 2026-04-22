@@ -247,21 +247,53 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
 
       {/* Save bar */}
       <div className="sticky bottom-4 z-30 mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur">
-        <p className="text-xs text-muted-foreground sm:text-sm">
-          {lastSavedAt ? (
-            <>
-              마지막 저장: <span className="font-medium text-foreground">{formatSavedAt(lastSavedAt)}</span>
-            </>
-          ) : (
-            <>답변은 안전하게 저장되며 교사가 확인할 수 있어요.</>
-          )}
-        </p>
-        <Button onClick={save} disabled={saving} size="lg">
+        <SaveStatusIndicator status={saveStatus} error={saveError} lastSavedAt={lastSavedAt} />
+        <Button onClick={save} disabled={saveStatus === "saving"} size="lg">
           <Save className="mr-2 h-4 w-4" />
-          {saving ? "저장 중..." : "저장하기"}
+          {saveStatus === "saving" ? "저장 중..." : "저장하기"}
         </Button>
       </div>
     </div>
+  );
+}
+
+function SaveStatusIndicator({
+  status,
+  error,
+  lastSavedAt,
+}: {
+  status: SaveStatus;
+  error: string | null;
+  lastSavedAt: string | null;
+}) {
+  if (status === "saving") {
+    return (
+      <p className="flex items-center gap-2 text-xs sm:text-sm text-primary">
+        <Loader2 className="h-4 w-4 animate-spin" /> 저장 중...
+      </p>
+    );
+  }
+  if (status === "error") {
+    return (
+      <p className="flex items-center gap-2 text-xs sm:text-sm text-destructive">
+        <CloudOff className="h-4 w-4" /> 저장 실패{error ? ` — ${error}` : ""}
+      </p>
+    );
+  }
+  if (status === "success") {
+    return (
+      <p className="flex items-center gap-2 text-xs sm:text-sm">
+        <CheckCircle2 className="h-4 w-4 text-accent" />
+        <span className="text-foreground">저장 완료</span>
+        <span className="text-muted-foreground">· {timeAgo(lastSavedAt)}</span>
+      </p>
+    );
+  }
+  return (
+    <p className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+      {lastSavedAt ? <Cloud className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+      {timeAgo(lastSavedAt)}
+    </p>
   );
 }
 
