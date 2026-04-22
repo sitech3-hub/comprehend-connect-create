@@ -29,11 +29,6 @@ type SubmissionRow = {
   updated_at: string;
 };
 
-function formatSavedAt(iso: string | null) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  return d.toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" });
-}
 
 export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
   const part = PARTS.find((p) => p.id === partId)!;
