@@ -6,8 +6,20 @@ import { PARTS } from "@/lib/lessonData";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { CheckCircle2, Circle, Lightbulb, Save, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle2, Circle, Cloud, CloudOff, Lightbulb, Loader2, Save, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+type SaveStatus = "idle" | "saving" | "success" | "error";
+
+function timeAgo(iso: string | null) {
+  if (!iso) return "저장 기록 없음";
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 10) return "방금 전 저장됨";
+  if (diff < 60) return `${Math.floor(diff)}초 전 저장됨`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}분 전 저장됨`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전 저장됨`;
+  return `${Math.floor(diff / 86400)}일 전 저장됨`;
+}
 
 type SubmissionRow = {
   vocab_answers: Record<string, string>;
@@ -17,11 +29,6 @@ type SubmissionRow = {
   updated_at: string;
 };
 
-function formatSavedAt(iso: string | null) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  return d.toLocaleString("ko-KR", { dateStyle: "short", timeStyle: "short" });
-}
 
 export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
   const part = PARTS.find((p) => p.id === partId)!;
@@ -31,8 +38,16 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
   const [grammar, setGrammar] = useState<Record<string, string>>({});
   const [reflection, setReflection] = useState("");
   const [inquiry, setInquiry] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [, setTick] = useState(0);
+
+  // Refresh "time ago" label every 30 seconds
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -56,7 +71,8 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
 
   const save = async () => {
     if (!user) return;
-    setSaving(true);
+    setSaveStatus("saving");
+    setSaveError(null);
     const { error } = await supabase.from("submissions").upsert(
       {
         user_id: user.id,
@@ -70,11 +86,14 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
       },
       { onConflict: "user_id,part" },
     );
-    setSaving(false);
-    if (error) toast.error("저장 실패: " + error.message);
-    else {
-      toast.success("저장되었어요 ✓");
+    if (error) {
+      setSaveStatus("error");
+      setSaveError(error.message);
+      toast.error("저장 실패: " + error.message);
+    } else {
+      setSaveStatus("success");
       setLastSavedAt(new Date().toISOString());
+      toast.success("저장되었어요 ✓");
       refresh();
     }
   };
@@ -88,6 +107,20 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 pb-20">
+      {/* Top save status bar */}
+      <div
+        className={cn(
+          "sticky top-2 z-20 flex items-center justify-between gap-3 rounded-xl border px-4 py-2 text-sm shadow-sm backdrop-blur",
+          saveStatus === "saving" && "border-primary/40 bg-primary/10",
+          saveStatus === "error" && "border-destructive/40 bg-destructive/10",
+          saveStatus === "success" && "border-accent/40 bg-accent/10",
+          saveStatus === "idle" && "border-border bg-card/90",
+        )}
+      >
+        <SaveStatusIndicator status={saveStatus} error={saveError} lastSavedAt={lastSavedAt} />
+        <span className="hidden text-xs text-muted-foreground sm:inline">자동으로 30초마다 표시 갱신</span>
+      </div>
+
       {/* Header */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
         <p className="text-xs font-medium uppercase tracking-wider text-primary">{part.pages}</p>
@@ -223,21 +256,53 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
 
       {/* Save bar */}
       <div className="sticky bottom-4 z-30 mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur">
-        <p className="text-xs text-muted-foreground sm:text-sm">
-          {lastSavedAt ? (
-            <>
-              마지막 저장: <span className="font-medium text-foreground">{formatSavedAt(lastSavedAt)}</span>
-            </>
-          ) : (
-            <>답변은 안전하게 저장되며 교사가 확인할 수 있어요.</>
-          )}
-        </p>
-        <Button onClick={save} disabled={saving} size="lg">
+        <SaveStatusIndicator status={saveStatus} error={saveError} lastSavedAt={lastSavedAt} />
+        <Button onClick={save} disabled={saveStatus === "saving"} size="lg">
           <Save className="mr-2 h-4 w-4" />
-          {saving ? "저장 중..." : "저장하기"}
+          {saveStatus === "saving" ? "저장 중..." : "저장하기"}
         </Button>
       </div>
     </div>
+  );
+}
+
+function SaveStatusIndicator({
+  status,
+  error,
+  lastSavedAt,
+}: {
+  status: SaveStatus;
+  error: string | null;
+  lastSavedAt: string | null;
+}) {
+  if (status === "saving") {
+    return (
+      <p className="flex items-center gap-2 text-xs sm:text-sm text-primary">
+        <Loader2 className="h-4 w-4 animate-spin" /> 저장 중...
+      </p>
+    );
+  }
+  if (status === "error") {
+    return (
+      <p className="flex items-center gap-2 text-xs sm:text-sm text-destructive">
+        <CloudOff className="h-4 w-4" /> 저장 실패{error ? ` — ${error}` : ""}
+      </p>
+    );
+  }
+  if (status === "success") {
+    return (
+      <p className="flex items-center gap-2 text-xs sm:text-sm">
+        <CheckCircle2 className="h-4 w-4 text-accent" />
+        <span className="text-foreground">저장 완료</span>
+        <span className="text-muted-foreground">· {timeAgo(lastSavedAt)}</span>
+      </p>
+    );
+  }
+  return (
+    <p className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+      {lastSavedAt ? <Cloud className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+      {timeAgo(lastSavedAt)}
+    </p>
   );
 }
 
