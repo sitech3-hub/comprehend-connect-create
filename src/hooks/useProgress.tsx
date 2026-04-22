@@ -11,6 +11,7 @@ export type PartProgress = {
 
 export function useProgress() {
   const { user } = useAuth();
+  const { criteria } = useCriteria();
   const [progress, setProgress] = useState<Record<number, PartProgress>>({});
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +27,7 @@ export function useProgress() {
       map[r.part] = {
         part: r.part,
         updated_at: r.updated_at,
-        completed: isComplete({
+        completed: isPartCompleteWith(criteria, {
           reflection: r.reflection,
           inquiry_answer: r.inquiry_answer,
           vocab_answers: (r.vocab_answers as Record<string, string>) || {},
@@ -36,7 +37,7 @@ export function useProgress() {
     });
     setProgress(map);
     setLoading(false);
-  }, [user]);
+  }, [user, criteria]);
 
   useEffect(() => {
     refresh();
