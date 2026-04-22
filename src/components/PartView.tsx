@@ -43,8 +43,16 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
   const [grammar, setGrammar] = useState<Record<string, string>>({});
   const [reflection, setReflection] = useState("");
   const [inquiry, setInquiry] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [, setTick] = useState(0);
+
+  // Refresh "time ago" label every 30 seconds
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
