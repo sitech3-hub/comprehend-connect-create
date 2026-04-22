@@ -82,6 +82,7 @@ function timeAgo(iso: string | null) {
 
 function TeacherPage() {
   const { user, loading, isTeacher } = useAuth();
+  const { criteria, refresh: refreshCriteria } = useCriteria();
   const [subs, setSubs] = useState<Sub[]>([]);
   const [fetching, setFetching] = useState(true);
   const [openUser, setOpenUser] = useState<string | null>(null);
@@ -90,6 +91,7 @@ function TeacherPage() {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("completionRate");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (!isTeacher) return;
