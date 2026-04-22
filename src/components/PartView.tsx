@@ -1,0 +1,274 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { PARTS, type Part } from "@/lib/lessonData";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { CheckCircle2, Circle, Lightbulb, Save, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type SubmissionRow = {
+  vocab_answers: Record<string, string>;
+  grammar_answers: Record<string, string>;
+  reflection: string;
+  inquiry_answer: string;
+};
+
+export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
+  const part = PARTS.find((p) => p.id === partId)!;
+  const { user } = useAuth();
+  const [vocab, setVocab] = useState<Record<string, string>>({});
+  const [grammar, setGrammar] = useState<Record<string, string>>({});
+  const [reflection, setReflection] = useState("");
+  const [inquiry, setInquiry] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    setVocab({}); setGrammar({}); setReflection(""); setInquiry("");
+    supabase
+      .from("submissions")
+      .select("vocab_answers, grammar_answers, reflection, inquiry_answer")
+      .eq("user_id", user.id)
+      .eq("part", partId)
+      .maybeSingle()
+      .then(({ data }) => {
+        const row = data as SubmissionRow | null;
+        if (!row) return;
+        setVocab((row.vocab_answers as Record<string, string>) || {});
+        setGrammar((row.grammar_answers as Record<string, string>) || {});
+        setReflection(row.reflection || "");
+        setInquiry(row.inquiry_answer || "");
+      });
+  }, [user, partId]);
+
+  const save = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase.from("submissions").upsert(
+      {
+        user_id: user.id,
+        user_email: user.email ?? "",
+        user_name: (user.user_metadata?.full_name as string) ?? (user.user_metadata?.name as string) ?? null,
+        part: partId,
+        vocab_answers: vocab,
+        grammar_answers: grammar,
+        reflection,
+        inquiry_answer: inquiry,
+      },
+      { onConflict: "user_id,part" },
+    );
+    setSaving(false);
+    if (error) toast.error("저장 실패: " + error.message);
+    else toast.success("저장되었어요 ✓");
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-8 px-4 pb-20">
+      {/* Header */}
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <p className="text-xs font-medium uppercase tracking-wider text-primary">{part.pages}</p>
+        <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{part.title}</h1>
+        <p className="mt-1 text-muted-foreground">{part.subtitle}</p>
+      </div>
+
+      {/* Inquiry intro */}
+      <Section icon={<Lightbulb className="h-5 w-5" />} title="개념기반탐구 도입 질문" tone="inquiry">
+        <p className="text-base font-medium leading-relaxed text-inquiry-foreground">
+          {part.inquiry.question}
+        </p>
+        <Textarea
+          value={inquiry}
+          onChange={(e) => setInquiry(e.target.value)}
+          placeholder={part.inquiry.placeholder}
+          className="mt-4 min-h-32 bg-background"
+        />
+      </Section>
+
+      {/* Reading passages */}
+      <Section title="📖 Reading" subtitle="천천히 읽고, 모르는 단어는 표시해 두세요.">
+        <div className="space-y-6">
+          {part.passages.map((p, i) => (
+            <article key={i} className="rounded-xl border border-border bg-secondary/40 p-5">
+              {p.heading && <h3 className="mb-3 text-xl font-bold">{p.heading}</h3>}
+              <p className="whitespace-pre-line text-[15px] leading-relaxed">{p.body}</p>
+            </article>
+          ))}
+        </div>
+        <details className="mt-4 rounded-lg border border-border bg-card p-3 text-sm">
+          <summary className="cursor-pointer font-semibold">교과서 본문 질문 보기</summary>
+          <ul className="mt-3 space-y-2 text-muted-foreground">
+            {part.textbookQs.map((q) => (
+              <li key={q.id}>
+                <span className="font-bold text-foreground">{q.id}.</span> {q.q}
+              </li>
+            ))}
+          </ul>
+        </details>
+      </Section>
+
+      {/* Vocabulary */}
+      <Section title="🔤 Vocabulary · 영영사전 어휘 풀이 (5문제)">
+        <div className="space-y-4">
+          {part.vocab.map((v, i) => (
+            <QuizItem
+              key={v.word}
+              index={i + 1}
+              prompt={
+                <>
+                  <span className="font-bold text-primary">{v.word}</span>{" "}
+                  <span className="text-muted-foreground">— Choose the meaning:</span>
+                </>
+              }
+              choices={v.choices}
+              value={vocab[v.word] ?? ""}
+              answer={v.answer}
+              onChange={(c) => setVocab({ ...vocab, [v.word]: c })}
+              hint={`Definition: ${v.definition}`}
+            />
+          ))}
+        </div>
+      </Section>
+
+      {/* Grammar */}
+      <Section title="✍️ Grammar · 문법 구조 확인 (3문제)">
+        <div className="space-y-4">
+          {part.grammar.map((g, i) => (
+            <QuizItem
+              key={i}
+              index={i + 1}
+              prompt={<span>{g.question}</span>}
+              choices={g.choices}
+              value={grammar[String(i)] ?? ""}
+              answer={g.answer}
+              onChange={(c) => setGrammar({ ...grammar, [String(i)]: c })}
+              hint={g.explanation}
+            />
+          ))}
+        </div>
+      </Section>
+
+      {/* Reflection */}
+      <Section icon={<Sparkles className="h-5 w-5" />} title="💭 My Voice · 개념기반 영작" tone="inquiry">
+        <p className="font-medium leading-relaxed text-inquiry-foreground">
+          {part.reflectionPrompt}
+        </p>
+        <Textarea
+          value={reflection}
+          onChange={(e) => setReflection(e.target.value)}
+          placeholder="Write your reflection in English..."
+          className="mt-4 min-h-44 bg-background"
+        />
+        <p className="mt-2 text-right text-xs text-muted-foreground">{reflection.trim().split(/\s+/).filter(Boolean).length} words</p>
+      </Section>
+
+      {/* Save bar */}
+      <div className="sticky bottom-4 z-30 mx-auto flex max-w-6xl items-center justify-between rounded-xl border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur">
+        <p className="text-sm text-muted-foreground">
+          답변은 안전하게 저장되며 교사가 확인할 수 있어요.
+        </p>
+        <Button onClick={save} disabled={saving} size="lg">
+          <Save className="mr-2 h-4 w-4" />
+          {saving ? "저장 중..." : "저장하기"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Section({
+  title,
+  subtitle,
+  children,
+  icon,
+  tone,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  icon?: React.ReactNode;
+  tone?: "inquiry";
+}) {
+  return (
+    <section
+      className={cn(
+        "rounded-2xl border p-6 shadow-sm",
+        tone === "inquiry" ? "border-inquiry-foreground/20 bg-inquiry" : "border-border bg-card",
+      )}
+    >
+      <div className="mb-4 flex items-center gap-2">
+        {icon}
+        <h2 className={cn("text-lg font-bold", tone === "inquiry" && "text-inquiry-foreground")}>
+          {title}
+        </h2>
+      </div>
+      {subtitle && <p className="mb-4 -mt-3 text-sm text-muted-foreground">{subtitle}</p>}
+      {children}
+    </section>
+  );
+}
+
+function QuizItem({
+  index,
+  prompt,
+  choices,
+  value,
+  answer,
+  onChange,
+  hint,
+}: {
+  index: number;
+  prompt: React.ReactNode;
+  choices: string[];
+  value: string;
+  answer: string;
+  onChange: (c: string) => void;
+  hint: string;
+}) {
+  const correct = value && value === answer;
+  const wrong = value && value !== answer;
+  return (
+    <div className="rounded-xl border border-border bg-background p-4">
+      <div className="mb-3 flex items-start gap-2">
+        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+          {index}
+        </span>
+        <p className="text-sm leading-relaxed">{prompt}</p>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {choices.map((c) => {
+          const selected = value === c;
+          return (
+            <button
+              key={c}
+              type="button"
+              onClick={() => onChange(c)}
+              className={cn(
+                "flex items-start gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-all",
+                selected
+                  ? correct
+                    ? "border-accent bg-accent/15 text-foreground"
+                    : "border-primary bg-primary/10"
+                  : "border-border bg-card hover:border-primary/40",
+              )}
+            >
+              {selected ? (
+                <CheckCircle2 className={cn("mt-0.5 h-4 w-4 shrink-0", correct ? "text-accent" : "text-primary")} />
+              ) : (
+                <Circle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/50" />
+              )}
+              <span>{c}</span>
+            </button>
+          );
+        })}
+      </div>
+      {(correct || wrong) && (
+        <p className={cn("mt-3 text-xs", correct ? "text-accent-foreground" : "text-muted-foreground")}>
+          {correct ? "✓ Correct! " : "💡 Hint: "}
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
