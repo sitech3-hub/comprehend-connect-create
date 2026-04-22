@@ -215,8 +215,22 @@ function TeacherPage() {
               <FileCheck2 className="h-4 w-4 text-accent" />
               <span className="font-bold">{subs.length}</span>개의 제출
             </div>
+            <Button variant="outline" size="sm" onClick={() => setSettingsOpen((o) => !o)}>
+              <Settings2 className="mr-2 h-4 w-4" />
+              완료 기준 설정
+            </Button>
           </div>
         </div>
+
+        {settingsOpen && (
+          <CriteriaPanel
+            criteria={criteria}
+            onSaved={() => {
+              refreshCriteria();
+            }}
+            onClose={() => setSettingsOpen(false)}
+          />
+        )}
 
         {/* Filters */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
