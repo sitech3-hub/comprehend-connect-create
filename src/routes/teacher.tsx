@@ -1,6 +1,6 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { TEACHER_EMAILS, useAuth } from "@/hooks/useAuth";
 import { Criteria, isPartCompleteWith, useCriteria } from "@/hooks/useCriteria";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
