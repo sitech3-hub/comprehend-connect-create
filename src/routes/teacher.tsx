@@ -1,6 +1,7 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { TEACHER_EMAILS, useAuth } from "@/hooks/useAuth";
+import { logTeacherAccessDenied } from "@/server/logAccess";
 import { Criteria, isPartCompleteWith, useCriteria } from "@/hooks/useCriteria";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,6 +87,31 @@ function RedirectHome() {
     return () => clearTimeout(t);
   }, []);
   return null;
+}
+
+function DeniedView({ email, uid, reason }: { email: string; uid: string; reason: string }) {
+  const logged = useRef(false);
+  useEffect(() => {
+    if (logged.current) return;
+    logged.current = true;
+    logTeacherAccessDenied({
+      data: { email, uid, reason, path: "/teacher" },
+    }).catch(() => {
+      // best-effort logging; ignore failures
+    });
+  }, [email, uid, reason]);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center p-6">
+      <div className="max-w-md rounded-xl border border-border bg-card p-6 text-center">
+        <h1 className="text-xl font-bold">403 — 접근 권한이 없습니다</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          교사 대시보드는 허용된 Google 계정만 접근할 수 있어요. 잠시 후 홈으로 이동합니다.
+        </p>
+        <RedirectHome />
+      </div>
+    </div>
+  );
 }
 
 function TeacherPage() {
@@ -200,18 +226,16 @@ function TeacherPage() {
     user.user_metadata?.email_verified === true;
   const allowed = isTeacher && isGoogle && emailVerified && TEACHER_EMAILS.includes(email);
 
-  if (!allowed)
-    return (
-      <div className="flex min-h-screen items-center justify-center p-6">
-        <div className="max-w-md rounded-xl border border-border bg-card p-6 text-center">
-          <h1 className="text-xl font-bold">403 — 접근 권한이 없습니다</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            교사 대시보드는 허용된 Google 계정만 접근할 수 있어요. 잠시 후 홈으로 이동합니다.
-          </p>
-          <RedirectHome />
-        </div>
-      </div>
-    );
+  if (!allowed) {
+    const reason = !isGoogle
+      ? "not_google"
+      : !emailVerified
+        ? "email_unverified"
+        : !TEACHER_EMAILS.includes(email)
+          ? "not_whitelisted"
+          : "no_teacher_role";
+    return <DeniedView email={email} uid={user.id} reason={reason} />;
+  }
 
   const totalStudents = new Set(subs.map((s) => s.user_id)).size;
 
