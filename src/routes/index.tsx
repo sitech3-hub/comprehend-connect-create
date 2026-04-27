@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Sparkles, Leaf } from "lucide-react";
+import { BookOpen, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -42,11 +42,6 @@ function LoginPage() {
       <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-accent/15 blur-3xl" />
 
       <div className="relative mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 py-12">
-        <div className="mb-10 flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-1.5 text-xs backdrop-blur">
-          <Leaf className="h-3.5 w-3.5 text-accent" />
-          <span className="font-medium">시민고등학교 · 영어1 활동지</span>
-        </div>
-
         <div className="flex flex-col items-center text-center">
           <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
             <BookOpen className="h-10 w-10" />
@@ -91,10 +86,6 @@ function LoginPage() {
             </svg>
             Google로 로그인
           </Button>
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            교사: <span className="font-mono">hongjinwoo@simin.hs.kr</span>,{" "}
-            <span className="font-mono">sitech3@simin.hs.kr</span>
-          </p>
         </div>
 
         <div className="mt-12 flex items-center gap-2 text-xs text-muted-foreground">
