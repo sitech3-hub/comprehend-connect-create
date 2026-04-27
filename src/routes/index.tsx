@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
 import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Sparkles, Leaf } from "lucide-react";
+import { BookOpen, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
