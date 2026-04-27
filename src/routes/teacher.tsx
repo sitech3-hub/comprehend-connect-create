@@ -89,6 +89,31 @@ function RedirectHome() {
   return null;
 }
 
+function DeniedView({ email, uid, reason }: { email: string; uid: string; reason: string }) {
+  const logged = useRef(false);
+  useEffect(() => {
+    if (logged.current) return;
+    logged.current = true;
+    logTeacherAccessDenied({
+      data: { email, uid, reason, path: "/teacher" },
+    }).catch(() => {
+      // best-effort logging; ignore failures
+    });
+  }, [email, uid, reason]);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center p-6">
+      <div className="max-w-md rounded-xl border border-border bg-card p-6 text-center">
+        <h1 className="text-xl font-bold">403 — 접근 권한이 없습니다</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          교사 대시보드는 허용된 Google 계정만 접근할 수 있어요. 잠시 후 홈으로 이동합니다.
+        </p>
+        <RedirectHome />
+      </div>
+    </div>
+  );
+}
+
 function TeacherPage() {
   const { user, loading, isTeacher } = useAuth();
   const { criteria, refresh: refreshCriteria } = useCriteria();
