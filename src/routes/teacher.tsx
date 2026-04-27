@@ -80,6 +80,14 @@ function timeAgo(iso: string | null) {
   return `${Math.floor(diff / 86400)}일 전`;
 }
 
+function RedirectHome() {
+  useEffect(() => {
+    const t = setTimeout(() => window.location.replace("/"), 1500);
+    return () => clearTimeout(t);
+  }, []);
+  return null;
+}
+
 function TeacherPage() {
   const { user, loading, isTeacher } = useAuth();
   const { criteria, refresh: refreshCriteria } = useCriteria();
