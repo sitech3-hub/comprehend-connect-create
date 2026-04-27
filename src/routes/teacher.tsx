@@ -1,6 +1,6 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { TEACHER_EMAILS, useAuth } from "@/hooks/useAuth";
 import { Criteria, isPartCompleteWith, useCriteria } from "@/hooks/useCriteria";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,6 +78,14 @@ function timeAgo(iso: string | null) {
   if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
   return `${Math.floor(diff / 86400)}일 전`;
+}
+
+function RedirectHome() {
+  useEffect(() => {
+    const t = setTimeout(() => window.location.replace("/"), 1500);
+    return () => clearTimeout(t);
+  }, []);
+  return null;
 }
 
 function TeacherPage() {
@@ -181,14 +189,26 @@ function TeacherPage() {
 
   if (loading) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
   if (!user) return <Navigate to="/" />;
-  if (!isTeacher)
+
+  // Strict guard: must be Google-authenticated, email-verified, and in the whitelist.
+  const email = user.email?.toLowerCase() ?? "";
+  const provider = (user.app_metadata?.provider as string | undefined) ?? "";
+  const providers = (user.app_metadata?.providers as string[] | undefined) ?? [];
+  const isGoogle = provider === "google" || providers.includes("google");
+  const emailVerified =
+    Boolean(user.email_confirmed_at) ||
+    user.user_metadata?.email_verified === true;
+  const allowed = isTeacher && isGoogle && emailVerified && TEACHER_EMAILS.includes(email);
+
+  if (!allowed)
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <div className="max-w-md rounded-xl border border-border bg-card p-6 text-center">
-          <h1 className="text-xl font-bold">접근 권한이 없습니다</h1>
+          <h1 className="text-xl font-bold">403 — 접근 권한이 없습니다</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            교사 대시보드는 지정된 선생님 계정만 접근할 수 있어요.
+            교사 대시보드는 허용된 Google 계정만 접근할 수 있어요. 잠시 후 홈으로 이동합니다.
           </p>
+          <RedirectHome />
         </div>
       </div>
     );
