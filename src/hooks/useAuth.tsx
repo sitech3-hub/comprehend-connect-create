@@ -2,8 +2,6 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-const TEACHER_EMAILS = ["hongjinwoo@simin.hs.kr", "sitech3@simin.hs.kr"];
-
 type AuthCtx = {
   session: Session | null;
   user: User | null;
@@ -23,6 +21,8 @@ const Ctx = createContext<AuthCtx>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isTeacher, setIsTeacher] = useState(false);
+  const [roleChecked, setRoleChecked] = useState(false);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -36,16 +36,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Resolve teacher role from DB (user_roles), not from a client whitelist.
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) {
+      setIsTeacher(false);
+      setRoleChecked(true);
+      return;
+    }
+    setRoleChecked(false);
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", uid)
+      .eq("role", "teacher")
+      .maybeSingle()
+      .then(({ data }) => {
+        setIsTeacher(!!data);
+        setRoleChecked(true);
+      });
+  }, [session?.user?.id]);
+
   const user = session?.user ?? null;
-  const email = user?.email?.toLowerCase() ?? "";
-  const isTeacher = TEACHER_EMAILS.includes(email);
 
   return (
     <Ctx.Provider
       value={{
         session,
         user,
-        loading,
+        loading: loading || (!!user && !roleChecked),
         isTeacher,
         signOut: async () => {
           await supabase.auth.signOut();
@@ -58,4 +77,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export const useAuth = () => useContext(Ctx);
-export { TEACHER_EMAILS };
