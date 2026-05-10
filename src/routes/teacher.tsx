@@ -342,8 +342,8 @@ function TeacherPage() {
                   <TableHead>
                     <SortBtn label="학생" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
                   </TableHead>
-                  {[1, 2, 3].map((p) => (
-                    <TableHead key={p} className="text-center">Part {p}</TableHead>
+                  {PARTS.map((pt) => (
+                    <TableHead key={pt.id} className="text-center">Part {pt.id}</TableHead>
                   ))}
                   <TableHead className="text-right">
                     <SortBtn
