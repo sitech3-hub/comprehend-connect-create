@@ -2,18 +2,18 @@ export type VocabQ = { word: string; definition: string; choices: string[]; answ
 export type GrammarQ = { question: string; choices: string[]; answer: string; explanation: string };
 
 export type Part = {
-  id: 1 | 2 | 3;
+  id: 1 | 2 | 3 | 4;
   title: string;
   subtitle: string;
   pages: string;
-  inquiry: { question: string; placeholder: string };
+  inquiry?: { question: string; placeholder: string };
   passages: { heading?: string; body: string }[];
-  textbookQs: { id: string; q: string }[];
-  vocab: VocabQ[];
+  textbookQs?: { id: string; q: string }[];
+  vocab?: VocabQ[];
   grammar: GrammarQ[];
-  reflectionPrompt: string;
-  reflectionConcepts: string[];
-  reflectionKeywords: string[];
+  reflectionPrompt?: string;
+  reflectionConcepts?: string[];
+  reflectionKeywords?: string[];
 };
 
 export const PARTS: Part[] = [
