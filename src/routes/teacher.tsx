@@ -448,7 +448,7 @@ function TeacherPage() {
                                         <ScoreRow
                                           label="어휘"
                                           answers={s.vocab_answers}
-                                          items={part.vocab.map((v) => ({ key: v.word, answer: v.answer }))}
+                                          items={(part.vocab ?? []).map((v) => ({ key: v.word, answer: v.answer }))}
                                         />
                                         <ScoreRow
                                           label="문법"
