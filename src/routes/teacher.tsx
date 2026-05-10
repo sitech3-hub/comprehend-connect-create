@@ -386,7 +386,7 @@ function TeacherPage() {
                             </div>
                           </div>
                         </TableCell>
-                        {[1, 2, 3].map((p) => {
+                        {PARTS.map((pt) => { const p = pt.id;
                           const s = r.parts.get(p);
                           const done = s ? isPartComplete(s, criteria) : false;
                           return (
