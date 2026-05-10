@@ -20,7 +20,8 @@ export function PartNav() {
   const { progress } = useProgress();
 
   const completedCount = Object.values(progress).filter((p) => p.completed).length;
-  const pct = Math.round((completedCount / 3) * 100);
+  const totalParts = PARTS.length;
+  const pct = Math.round((completedCount / totalParts) * 100);
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-4">
