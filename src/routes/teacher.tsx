@@ -120,7 +120,7 @@ function TeacherPage() {
   const [subs, setSubs] = useState<Sub[]>([]);
   const [fetching, setFetching] = useState(true);
   const [openUser, setOpenUser] = useState<string | null>(null);
-  const [filterPart, setFilterPart] = useState<0 | 1 | 2 | 3>(0);
+  const [filterPart, setFilterPart] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [filterStatus, setFilterStatus] = useState<"all" | "complete" | "incomplete" | "none">("all");
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("completionRate");
