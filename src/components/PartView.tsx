@@ -30,7 +30,7 @@ type SubmissionRow = {
 };
 
 
-export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
+export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
   const part = PARTS.find((p) => p.id === partId)!;
   const { user } = useAuth();
   const { refresh } = useProgress();
