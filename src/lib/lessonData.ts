@@ -14,6 +14,7 @@ export type Part = {
   reflectionPrompt?: string;
   reflectionConcepts?: string[];
   reflectionKeywords?: string[];
+  reflectionModel?: { title: string; body: string; note?: string };
 };
 
 export const PARTS: Part[] = [
