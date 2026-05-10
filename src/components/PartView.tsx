@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProgress } from "@/hooks/useProgress";
@@ -41,7 +41,9 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
   const [, setTick] = useState(0);
+  const hydratingRef = useRef(true);
 
   // Refresh "time ago" label every 30 seconds
   useEffect(() => {
@@ -51,7 +53,8 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
 
   useEffect(() => {
     if (!user) return;
-    setVocab({}); setGrammar({}); setReflection(""); setInquiry(""); setLastSavedAt(null);
+    hydratingRef.current = true;
+    setVocab({}); setGrammar({}); setReflection(""); setInquiry(""); setLastSavedAt(null); setDirty(false);
     supabase
       .from("submissions")
       .select("vocab_answers, grammar_answers, reflection, inquiry_answer, updated_at")
@@ -60,24 +63,26 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
       .maybeSingle()
       .then(({ data }) => {
         const row = data as SubmissionRow | null;
-        if (!row) return;
-        setVocab((row.vocab_answers as Record<string, string>) || {});
-        setGrammar((row.grammar_answers as Record<string, string>) || {});
-        setReflection(row.reflection || "");
-        setInquiry(row.inquiry_answer || "");
-        setLastSavedAt(row.updated_at);
+        if (row) {
+          setVocab((row.vocab_answers as Record<string, string>) || {});
+          setGrammar((row.grammar_answers as Record<string, string>) || {});
+          setReflection(row.reflection || "");
+          setInquiry(row.inquiry_answer || "");
+          setLastSavedAt(row.updated_at);
+        }
+        // Allow autosave only after hydration completes
+        setTimeout(() => { hydratingRef.current = false; }, 0);
       });
   }, [user, partId]);
 
-  const save = async () => {
+  const save = useCallback(async () => {
     if (!user) return;
     setSaveStatus("saving");
     setSaveError(null);
+    // user_email / user_name are filled server-side by trigger from auth.users
     const { error } = await supabase.from("submissions").upsert(
       {
         user_id: user.id,
-        user_email: user.email ?? "",
-        user_name: (user.user_metadata?.full_name as string) ?? (user.user_metadata?.name as string) ?? null,
         part: partId,
         vocab_answers: vocab,
         grammar_answers: grammar,
@@ -93,10 +98,37 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
     } else {
       setSaveStatus("success");
       setLastSavedAt(new Date().toISOString());
-      toast.success("저장되었어요 ✓");
+      setDirty(false);
       refresh();
     }
-  };
+  }, [user, partId, vocab, grammar, reflection, inquiry, refresh]);
+
+  // Mark dirty whenever editable state changes after hydration
+  useEffect(() => {
+    if (hydratingRef.current) return;
+    setDirty(true);
+  }, [vocab, grammar, reflection, inquiry]);
+
+  // Debounced autosave (~3s after last change)
+  useEffect(() => {
+    if (!dirty) return;
+    const id = setTimeout(() => {
+      void save();
+    }, 3000);
+    return () => clearTimeout(id);
+  }, [dirty, save]);
+
+  // Warn on tab close / navigation when unsaved
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!dirty) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
+
 
   const insertKeyword = (kw: string) => {
     setReflection((prev) => {
