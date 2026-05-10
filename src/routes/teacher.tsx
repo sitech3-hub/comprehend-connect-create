@@ -1,6 +1,6 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { TEACHER_EMAILS, useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { logTeacherAccessDenied } from "@/server/logAccess";
 import { Criteria, isPartCompleteWith, useCriteria } from "@/hooks/useCriteria";
 import { AppHeader } from "@/components/AppHeader";
@@ -224,16 +224,16 @@ function TeacherPage() {
   const emailVerified =
     Boolean(user.email_confirmed_at) ||
     user.user_metadata?.email_verified === true;
-  const allowed = isTeacher && isGoogle && emailVerified && TEACHER_EMAILS.includes(email);
+  // Authoritative source: server-side role from user_roles (RLS-protected).
+  // Defense-in-depth: also require Google provider + verified email.
+  const allowed = isTeacher && isGoogle && emailVerified;
 
   if (!allowed) {
-    const reason = !isGoogle
-      ? "not_google"
-      : !emailVerified
-        ? "email_unverified"
-        : !TEACHER_EMAILS.includes(email)
-          ? "not_whitelisted"
-          : "no_teacher_role";
+    const reason = !isTeacher
+      ? "no_teacher_role"
+      : !isGoogle
+        ? "not_google"
+        : "email_unverified";
     return <DeniedView email={email} uid={user.id} reason={reason} />;
   }
 

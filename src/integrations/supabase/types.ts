@@ -56,7 +56,7 @@ export type Database = {
           part: number
           reflection: string
           updated_at: string
-          user_email: string
+          user_email: string | null
           user_id: string
           user_name: string | null
           vocab_answers: Json
@@ -69,7 +69,7 @@ export type Database = {
           part: number
           reflection?: string
           updated_at?: string
-          user_email: string
+          user_email?: string | null
           user_id: string
           user_name?: string | null
           vocab_answers?: Json
@@ -82,7 +82,7 @@ export type Database = {
           part?: number
           reflection?: string
           updated_at?: string
-          user_email?: string
+          user_email?: string | null
           user_id?: string
           user_name?: string | null
           vocab_answers?: Json

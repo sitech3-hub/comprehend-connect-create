@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.submissions_fill_user_identity() FROM PUBLIC, anon, authenticated;
