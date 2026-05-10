@@ -285,7 +285,7 @@ function TeacherPage() {
             className="h-9 w-56"
           />
           <div className="flex gap-1 rounded-md border border-border bg-card p-1">
-            {([0, 1, 2, 3] as const).map((p) => (
+            {([0, 1, 2, 3, 4] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setFilterPart(p)}
