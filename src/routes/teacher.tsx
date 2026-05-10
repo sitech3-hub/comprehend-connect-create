@@ -433,9 +433,9 @@ function TeacherPage() {
                       </TableRow>
                       {open && (
                         <TableRow key={r.user_id + "-detail"}>
-                          <TableCell colSpan={6} className="bg-secondary/30 p-5">
+                          <TableCell colSpan={PARTS.length + 4} className="bg-secondary/30 p-5">
                             <div className="space-y-4">
-                              {[1, 2, 3].map((p) => {
+                              {PARTS.map((pt) => { const p = pt.id;
                                 const s = r.parts.get(p);
                                 const part = PARTS.find((x) => x.id === p)!;
                                 return (
