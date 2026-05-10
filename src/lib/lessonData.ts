@@ -207,6 +207,12 @@ export const PARTS: Part[] = [
       "cost-effective", "barrier", "overcome", "win the public over",
       "in my opinion", "however", "on the other hand",
     ],
+    reflectionModel: {
+      title: "예시 글 (Modeling)",
+      body:
+        "In my opinion, I would be willing to try lab-grown meat, but eating insects still feels like a real barrier for me. Lab-grown meat looks and tastes similar to conventional meat, so it does not strongly clash with my cultural identity, and it can be a powerful alternative protein for the planet. Insects, however, carry a strong negative image in Korea, even though insect flour is cost-effective and rich in nutrients. On the other hand, I think this image can be overcome if companies hide the original shape and focus on familiar foods like cookies or noodles. Innovation always meets resistance at first, but tradition can slowly change when people see clear benefits for health and the environment.",
+      note: "위 글은 5문장, 약 110단어로 'Innovation–Tradition–Cultural Identity'를 연결한 예시입니다. 자신의 입장(찬성/반대/조건부)을 분명히 정한 뒤 근거를 본문 어휘로 풀어 보세요.",
+    },
   },
   {
     id: 3,
