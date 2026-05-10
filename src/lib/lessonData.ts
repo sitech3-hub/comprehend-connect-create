@@ -92,10 +92,11 @@ export const PARTS: Part[] = [
         explanation: "A gerund (-ing) functions as the subject of the sentence.",
       },
       {
-        question: "Identify the role of the underlined clause: 'the kinds of diet (that) people are eating today'",
-        choices: ["adverbial clause", "noun clause", "relative (adjective) clause", "conditional clause"],
-        answer: "relative (adjective) clause",
-        explanation: "The clause modifies 'the kinds of diet' — a relative clause with omitted relative pronoun.",
+        question:
+          "Choose the correct word form: 'Animal-based foods are generally ___ with the highest greenhouse gas emissions.'",
+        choices: ["associate", "associated", "associating", "association"],
+        answer: "associated",
+        explanation: "Passive form (be + p.p.): 'are associated with'.",
       },
     ],
     reflectionPrompt:
