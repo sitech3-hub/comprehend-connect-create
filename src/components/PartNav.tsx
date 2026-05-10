@@ -28,7 +28,7 @@ export function PartNav() {
       <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
         <span>학습 진행률</span>
         <span className="font-medium">
-          {completedCount} / 3 파트 완료 ({pct}%)
+          {completedCount} / {totalParts} 파트 완료 ({pct}%)
         </span>
       </div>
       <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
