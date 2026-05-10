@@ -15,13 +15,13 @@ function PartPage() {
 
   if (loading) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
   if (!user) return <Navigate to="/" />;
-  if (![1, 2, 3].includes(id)) return <Navigate to="/parts/$partId" params={{ partId: "1" }} />;
+  if (![1, 2, 3, 4].includes(id)) return <Navigate to="/parts/$partId" params={{ partId: "1" }} />;
 
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
       <PartNav />
-      <PartView partId={id as 1 | 2 | 3} />
+      <PartView partId={id as 1 | 2 | 3 | 4} />
     </div>
   );
 }
