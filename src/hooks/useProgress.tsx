@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { isPartCompleteWith, useCriteria } from "@/hooks/useCriteria";
+import { PARTS } from "@/lib/lessonData";
 
 export type PartProgress = {
   part: number;
@@ -32,6 +33,7 @@ export function useProgress() {
           inquiry_answer: r.inquiry_answer,
           vocab_answers: (r.vocab_answers as Record<string, string>) || {},
           grammar_answers: (r.grammar_answers as Record<string, string>) || {},
+          part: r.part,
         }),
       };
     });
@@ -44,14 +46,15 @@ export function useProgress() {
   }, [refresh]);
 
   // Next part to continue: first part that isn't completed; if all done, last edited.
-  const nextPartId = (): 1 | 2 | 3 => {
-    for (const id of [1, 2, 3] as const) {
+  const nextPartId = (): 1 | 2 | 3 | 4 => {
+    const ids = PARTS.map((p) => p.id);
+    for (const id of ids) {
       if (!progress[id]?.completed) return id;
     }
     const sorted = Object.values(progress).sort(
       (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
     );
-    return ((sorted[0]?.part as 1 | 2 | 3) ?? 1) as 1 | 2 | 3;
+    return ((sorted[0]?.part as 1 | 2 | 3 | 4) ?? 1);
   };
 
   return { progress, loading, refresh, nextPartId };

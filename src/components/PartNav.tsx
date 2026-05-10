@@ -20,14 +20,15 @@ export function PartNav() {
   const { progress } = useProgress();
 
   const completedCount = Object.values(progress).filter((p) => p.completed).length;
-  const pct = Math.round((completedCount / 3) * 100);
+  const totalParts = PARTS.length;
+  const pct = Math.round((completedCount / totalParts) * 100);
 
   return (
     <div className="mx-auto max-w-6xl px-4 pt-4">
       <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
         <span>학습 진행률</span>
         <span className="font-medium">
-          {completedCount} / 3 파트 완료 ({pct}%)
+          {completedCount} / {totalParts} 파트 완료 ({pct}%)
         </span>
       </div>
       <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">

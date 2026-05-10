@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PARTS } from "@/lib/lessonData";
 
 export type Criteria = {
   min_reflection_words: number;
@@ -22,17 +23,24 @@ export function isPartCompleteWith(
     inquiry_answer: string;
     vocab_answers: Record<string, string>;
     grammar_answers: Record<string, string>;
+    part?: number;
   },
 ) {
+  const part = PARTS.find((p) => p.id === row.part);
+  const vocabRequired = Math.min(c.min_vocab_answers, part?.vocab?.length ?? c.min_vocab_answers);
+  const grammarRequired = Math.min(c.min_grammar_answers, part?.grammar.length ?? c.min_grammar_answers);
+  const reflectionRequired = part?.reflectionPrompt ? c.min_reflection_words : 0;
+  const inquiryRequired = c.require_inquiry && !!part?.inquiry;
+
   const words = row.reflection.trim().split(/\s+/).filter(Boolean).length;
-  const inquiryOk = c.require_inquiry ? row.inquiry_answer.trim().length > 0 : true;
+  const inquiryOk = inquiryRequired ? row.inquiry_answer.trim().length > 0 : true;
   const vocabCount = Object.keys(row.vocab_answers ?? {}).length;
   const grammarCount = Object.keys(row.grammar_answers ?? {}).length;
   return (
-    words >= c.min_reflection_words &&
+    words >= reflectionRequired &&
     inquiryOk &&
-    vocabCount >= c.min_vocab_answers &&
-    grammarCount >= c.min_grammar_answers
+    vocabCount >= vocabRequired &&
+    grammarCount >= grammarRequired
   );
 }
 

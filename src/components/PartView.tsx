@@ -30,7 +30,7 @@ type SubmissionRow = {
 };
 
 
-export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
+export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
   const part = PARTS.find((p) => p.id === partId)!;
   const { user } = useAuth();
   const { refresh } = useProgress();
@@ -129,17 +129,19 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
       </div>
 
       {/* Inquiry intro */}
-      <Section icon={<Lightbulb className="h-5 w-5" />} title="개념기반탐구 도입 질문" tone="inquiry">
-        <p className="text-base font-medium leading-relaxed text-inquiry-foreground">
-          {part.inquiry.question}
-        </p>
-        <Textarea
-          value={inquiry}
-          onChange={(e) => setInquiry(e.target.value)}
-          placeholder={part.inquiry.placeholder}
-          className="mt-4 min-h-32 bg-background"
-        />
-      </Section>
+      {part.inquiry && (
+        <Section icon={<Lightbulb className="h-5 w-5" />} title="개념기반탐구 도입 질문" tone="inquiry">
+          <p className="text-base font-medium leading-relaxed text-inquiry-foreground">
+            {part.inquiry.question}
+          </p>
+          <Textarea
+            value={inquiry}
+            onChange={(e) => setInquiry(e.target.value)}
+            placeholder={part.inquiry.placeholder}
+            className="mt-4 min-h-32 bg-background"
+          />
+        </Section>
+      )}
 
       {/* Reading passages */}
       <Section title="📖 Reading" subtitle="천천히 읽고, 모르는 단어는 표시해 두세요.">
@@ -151,43 +153,47 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
             </article>
           ))}
         </div>
-        <details className="mt-4 rounded-lg border border-border bg-card p-3 text-sm">
-          <summary className="cursor-pointer font-semibold">교과서 본문 질문 보기</summary>
-          <ul className="mt-3 space-y-2 text-muted-foreground">
-            {part.textbookQs.map((q) => (
-              <li key={q.id}>
-                <span className="font-bold text-foreground">{q.id}.</span> {q.q}
-              </li>
-            ))}
-          </ul>
-        </details>
+        {part.textbookQs && part.textbookQs.length > 0 && (
+          <details className="mt-4 rounded-lg border border-border bg-card p-3 text-sm">
+            <summary className="cursor-pointer font-semibold">교과서 본문 질문 보기</summary>
+            <ul className="mt-3 space-y-2 text-muted-foreground">
+              {part.textbookQs.map((q) => (
+                <li key={q.id}>
+                  <span className="font-bold text-foreground">{q.id}.</span> {q.q}
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </Section>
 
       {/* Vocabulary */}
-      <Section title="🔤 Vocabulary · 영영사전 어휘 풀이 (5문제)">
-        <div className="space-y-4">
-          {part.vocab.map((v, i) => (
-            <QuizItem
-              key={v.word}
-              index={i + 1}
-              prompt={
-                <>
-                  <span className="font-bold text-primary">{v.word}</span>{" "}
-                  <span className="text-muted-foreground">— Choose the meaning:</span>
-                </>
-              }
-              choices={v.choices}
-              value={vocab[v.word] ?? ""}
-              answer={v.answer}
-              onChange={(c) => setVocab({ ...vocab, [v.word]: c })}
-              hint={`Definition: ${v.definition}`}
-            />
-          ))}
-        </div>
-      </Section>
+      {part.vocab && part.vocab.length > 0 && (
+        <Section title={`🔤 Vocabulary · 영영사전 어휘 풀이 (${part.vocab.length}문제)`}>
+          <div className="space-y-4">
+            {part.vocab.map((v, i) => (
+              <QuizItem
+                key={v.word}
+                index={i + 1}
+                prompt={
+                  <>
+                    <span className="font-bold text-primary">{v.word}</span>{" "}
+                    <span className="text-muted-foreground">— Choose the meaning:</span>
+                  </>
+                }
+                choices={v.choices}
+                value={vocab[v.word] ?? ""}
+                answer={v.answer}
+                onChange={(c) => setVocab({ ...vocab, [v.word]: c })}
+                hint={`Definition: ${v.definition}`}
+              />
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* Grammar */}
-      <Section title="✍️ Grammar · 문법 구조 확인 (3문제)">
+      <Section title={`✍️ Grammar · 문법 구조 확인 (${part.grammar.length}문제)`}>
         <div className="space-y-4">
           {part.grammar.map((g, i) => (
             <QuizItem
@@ -205,54 +211,64 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 }) {
       </Section>
 
       {/* Reflection */}
-      <Section icon={<Sparkles className="h-5 w-5" />} title="💭 My Voice · 개념기반 영작" tone="inquiry">
-        <p className="font-medium leading-relaxed text-inquiry-foreground">
-          {part.reflectionPrompt}
-        </p>
-
-        <div className="mt-5 rounded-xl border border-inquiry-foreground/15 bg-background/60 p-4">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-inquiry-foreground/80">
-            🧭 핵심 개념 (Key Concepts)
+      {part.reflectionPrompt && (
+        <Section icon={<Sparkles className="h-5 w-5" />} title="💭 My Voice · 개념기반 영작" tone="inquiry">
+          <p className="font-medium leading-relaxed text-inquiry-foreground">
+            {part.reflectionPrompt}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {part.reflectionConcepts.map((c) => (
-              <span
-                key={c}
-                className="rounded-full border border-inquiry-foreground/30 bg-inquiry px-3 py-1 text-xs font-semibold text-inquiry-foreground"
-              >
-                {c}
-              </span>
-            ))}
+
+          <div className="mt-5 rounded-xl border border-inquiry-foreground/15 bg-background/60 p-4">
+            {part.reflectionConcepts && part.reflectionConcepts.length > 0 && (
+              <>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-inquiry-foreground/80">
+                  🧭 핵심 개념 (Key Concepts)
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {part.reflectionConcepts.map((c) => (
+                    <span
+                      key={c}
+                      className="rounded-full border border-inquiry-foreground/30 bg-inquiry px-3 py-1 text-xs font-semibold text-inquiry-foreground"
+                    >
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {part.reflectionKeywords && part.reflectionKeywords.length > 0 && (
+              <>
+                <p className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-inquiry-foreground/80">
+                  💡 도움 키워드 (클릭해서 추가)
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {part.reflectionKeywords.map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => insertKeyword(k)}
+                      className="group flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground transition-all hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                    >
+                      <span className="opacity-60 group-hover:opacity-100">+</span>
+                      {k}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
-          <p className="mb-2 mt-4 text-xs font-bold uppercase tracking-wider text-inquiry-foreground/80">
-            💡 도움 키워드 (클릭해서 추가)
+          <Textarea
+            value={reflection}
+            onChange={(e) => setReflection(e.target.value)}
+            placeholder="Write your reflection in English... (위의 키워드를 클릭하면 자동으로 추가돼요)"
+            className="mt-4 min-h-44 bg-background"
+          />
+          <p className="mt-2 text-right text-xs text-muted-foreground">
+            {reflection.trim().split(/\s+/).filter(Boolean).length} words
           </p>
-          <div className="flex flex-wrap gap-2">
-            {part.reflectionKeywords.map((k) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => insertKeyword(k)}
-                className="group flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs text-foreground transition-all hover:border-primary hover:bg-primary hover:text-primary-foreground"
-              >
-                <span className="opacity-60 group-hover:opacity-100">+</span>
-                {k}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <Textarea
-          value={reflection}
-          onChange={(e) => setReflection(e.target.value)}
-          placeholder="Write your reflection in English... (위의 키워드를 클릭하면 자동으로 추가돼요)"
-          className="mt-4 min-h-44 bg-background"
-        />
-        <p className="mt-2 text-right text-xs text-muted-foreground">
-          {reflection.trim().split(/\s+/).filter(Boolean).length} words
-        </p>
-      </Section>
+        </Section>
+      )}
 
       {/* Save bar */}
       <div className="sticky bottom-4 z-30 mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur">

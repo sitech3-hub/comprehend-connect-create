@@ -2,18 +2,18 @@ export type VocabQ = { word: string; definition: string; choices: string[]; answ
 export type GrammarQ = { question: string; choices: string[]; answer: string; explanation: string };
 
 export type Part = {
-  id: 1 | 2 | 3;
+  id: 1 | 2 | 3 | 4;
   title: string;
   subtitle: string;
   pages: string;
-  inquiry: { question: string; placeholder: string };
+  inquiry?: { question: string; placeholder: string };
   passages: { heading?: string; body: string }[];
-  textbookQs: { id: string; q: string }[];
-  vocab: VocabQ[];
+  textbookQs?: { id: string; q: string }[];
+  vocab?: VocabQ[];
   grammar: GrammarQ[];
-  reflectionPrompt: string;
-  reflectionConcepts: string[];
-  reflectionKeywords: string[];
+  reflectionPrompt?: string;
+  reflectionConcepts?: string[];
+  reflectionKeywords?: string[];
 };
 
 export const PARTS: Part[] = [
@@ -92,10 +92,11 @@ export const PARTS: Part[] = [
         explanation: "A gerund (-ing) functions as the subject of the sentence.",
       },
       {
-        question: "Identify the role of the underlined clause: 'the kinds of diet (that) people are eating today'",
-        choices: ["adverbial clause", "noun clause", "relative (adjective) clause", "conditional clause"],
-        answer: "relative (adjective) clause",
-        explanation: "The clause modifies 'the kinds of diet' — a relative clause with omitted relative pronoun.",
+        question:
+          "Choose the correct word form: 'Animal-based foods are generally ___ with the highest greenhouse gas emissions.'",
+        choices: ["associate", "associated", "associating", "association"],
+        answer: "associated",
+        explanation: "Passive form (be + p.p.): 'are associated with'.",
       },
     ],
     reflectionPrompt:
@@ -291,6 +292,88 @@ export const PARTS: Part[] = [
       "3D printed food", "algae", "trapping carbon",
       "natural disaster", "global warming", "individual diet",
       "as a global citizen", "I will", "step forward", "the unfamiliar",
+    ],
+  },
+  {
+    id: 4,
+    title: "Part 4 · Grammar",
+    subtitle: "유사관계대명사 & 독립부정사",
+    pages: "Grammar Focus",
+    passages: [
+      {
+        heading: "1. 유사관계대명사 (Pseudo-Relative Pronouns): as · but · than",
+        body:
+          "유사관계대명사는 형태상 접속사·전치사처럼 보이지만, 선행사를 받아 관계대명사처럼 절을 이끄는 단어입니다. 대표적으로 as / but / than 세 가지가 있습니다.\n\n• as — 'such, the same, as'와 같은 표현 뒤에서 선행사를 받습니다.\n  예) She is wearing the same dress as I bought yesterday. (내가 어제 산 것과 같은 드레스)\n  예) Choose such books as will help you. (너에게 도움이 될 만한 그런 책들을 골라라.)\n\n• but — 부정문에서 'who/which ... not'의 의미로 쓰입니다. (= that ... not)\n  예) There is no rule but has exceptions. (예외 없는 규칙은 없다.)\n  → = There is no rule that does not have exceptions.\n\n• than — 비교급(more, less, -er) 뒤에서 선행사를 받습니다.\n  예) Don't spend more money than is needed. (필요한 것보다 더 많은 돈을 쓰지 마라.)\n  예) He read more books than were on the shelf. (선반에 있던 것보다 더 많은 책을 읽었다.)",
+      },
+      {
+        heading: "2. 독립부정사 (Independent Infinitives)",
+        body:
+          "독립부정사는 to부정사가 문장 전체를 수식하는 부사구처럼 쓰여, 화자의 태도나 부연 설명을 더하는 관용 표현입니다. 문장의 다른 성분과 문법적으로 직접 연결되지 않고 콤마로 분리됩니다.\n\n자주 쓰이는 독립부정사:\n• to be honest / to be frank (with you) — 솔직히 말하면\n• to tell (you) the truth — 사실대로 말하면\n• to begin with / to start with — 우선, 먼저\n• to make matters worse — 설상가상으로\n• to make a long story short — 간단히 말하자면\n• strange to say — 이상한 말이지만\n• needless to say — 말할 필요도 없이\n• so to speak — 말하자면\n• to do A justice — A를 정당하게 평가하면\n\n예) To be honest, I don't like the new design. (솔직히 말하면, 새 디자인이 마음에 들지 않아.)\n예) To make matters worse, it started to rain. (설상가상으로, 비가 내리기 시작했다.)\n예) Needless to say, health is more important than wealth. (말할 필요도 없이, 건강이 부보다 중요하다.)",
+      },
+    ],
+    grammar: [
+      // ── 유사관계대명사 5문항 ──
+      {
+        question: "[유사관계대명사] Choose the correct word: 'She has the same bag ___ I do.'",
+        choices: ["that", "as", "than", "but"],
+        answer: "as",
+        explanation: "'the same ... as' 구문 — 선행사 'the same bag'을 받는 유사관계대명사 'as'.",
+      },
+      {
+        question: "[유사관계대명사] Choose the correct word: 'There is no one ___ has weaknesses.'",
+        choices: ["as", "than", "but", "which"],
+        answer: "but",
+        explanation: "부정문에서 'but'은 'who ... not'의 뜻 — '약점이 없는 사람은 없다'.",
+      },
+      {
+        question: "[유사관계대명사] Choose the correct word: 'Don't drink more water ___ is necessary.'",
+        choices: ["as", "than", "but", "that"],
+        answer: "than",
+        explanation: "비교급 'more ... than' 뒤에서 선행사를 받는 유사관계대명사 'than'.",
+      },
+      {
+        question: "[유사관계대명사] Choose the correct word: 'Choose such friends ___ will encourage you.'",
+        choices: ["who", "than", "but", "as"],
+        answer: "as",
+        explanation: "'such ... as' 구문 — 선행사 'such friends'를 받는 'as'.",
+      },
+      {
+        question: "[유사관계대명사] Choose the correct word: 'There were more guests at the party ___ had been expected.'",
+        choices: ["as", "than", "but", "what"],
+        answer: "than",
+        explanation: "비교급 'more ... than' 뒤의 유사관계대명사 'than' (= than those who).",
+      },
+      // ── 독립부정사 5문항 ──
+      {
+        question: "[독립부정사] Choose the correct expression: '___, I don't agree with the plan.'",
+        choices: ["To be honest", "To honest", "Honest to be", "Being honest"],
+        answer: "To be honest",
+        explanation: "'솔직히 말하면'의 독립부정사는 'To be honest'.",
+      },
+      {
+        question: "[독립부정사] Choose the correct expression: '___, the bus broke down on the way home.'",
+        choices: ["To make matter worse", "To making matters worse", "To make matters worse", "Make matters worse"],
+        answer: "To make matters worse",
+        explanation: "'설상가상으로' = 'To make matters worse' (matters는 항상 복수형).",
+      },
+      {
+        question: "[독립부정사] Choose the correct expression: '___, I have never been abroad.'",
+        choices: ["To telling the truth", "To tell the truth", "Tell the truth", "Telling the truth"],
+        answer: "To tell the truth",
+        explanation: "'사실대로 말하면' = 'To tell the truth'.",
+      },
+      {
+        question: "[독립부정사] Choose the correct expression: '___, exercise is essential for good health.'",
+        choices: ["Need not to say", "Needing to say", "Needless to say", "No need to say"],
+        answer: "Needless to say",
+        explanation: "'말할 필요도 없이' = 'Needless to say'.",
+      },
+      {
+        question: "[독립부정사] Choose the correct expression: '___, he is a walking dictionary.'",
+        choices: ["So to speak", "So speaking", "To so speak", "Speaking so"],
+        answer: "So to speak",
+        explanation: "'말하자면' = 'So to speak'.",
+      },
     ],
   },
 ];

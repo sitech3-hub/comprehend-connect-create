@@ -120,7 +120,7 @@ function TeacherPage() {
   const [subs, setSubs] = useState<Sub[]>([]);
   const [fetching, setFetching] = useState(true);
   const [openUser, setOpenUser] = useState<string | null>(null);
-  const [filterPart, setFilterPart] = useState<0 | 1 | 2 | 3>(0);
+  const [filterPart, setFilterPart] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [filterStatus, setFilterStatus] = useState<"all" | "complete" | "incomplete" | "none">("all");
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("completionRate");
@@ -163,7 +163,7 @@ function TeacherPage() {
     }
     for (const r of byUser.values()) {
       r.completed = Array.from(r.parts.values()).filter((s) => isPartComplete(s, criteria)).length;
-      r.completionRate = Math.round((r.completed / 3) * 100);
+      r.completionRate = Math.round((r.completed / PARTS.length) * 100);
     }
     let arr = Array.from(byUser.values());
 
@@ -183,8 +183,8 @@ function TeacherPage() {
           if (filterStatus === "complete") return s && isPartComplete(s, criteria);
           if (filterStatus === "incomplete") return s && !isPartComplete(s, criteria);
         } else {
-          if (filterStatus === "complete") return r.completed === 3;
-          if (filterStatus === "incomplete") return r.completed > 0 && r.completed < 3;
+          if (filterStatus === "complete") return r.completed === PARTS.length;
+          if (filterStatus === "incomplete") return r.completed > 0 && r.completed < PARTS.length;
           if (filterStatus === "none") return r.completed === 0 && r.parts.size === 0;
         }
         return true;
@@ -285,7 +285,7 @@ function TeacherPage() {
             className="h-9 w-56"
           />
           <div className="flex gap-1 rounded-md border border-border bg-card p-1">
-            {([0, 1, 2, 3] as const).map((p) => (
+            {([0, 1, 2, 3, 4] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => setFilterPart(p)}
@@ -342,8 +342,8 @@ function TeacherPage() {
                   <TableHead>
                     <SortBtn label="학생" active={sortKey === "name"} dir={sortDir} onClick={() => toggleSort("name")} />
                   </TableHead>
-                  {[1, 2, 3].map((p) => (
-                    <TableHead key={p} className="text-center">Part {p}</TableHead>
+                  {PARTS.map((pt) => (
+                    <TableHead key={pt.id} className="text-center">Part {pt.id}</TableHead>
                   ))}
                   <TableHead className="text-right">
                     <SortBtn
@@ -386,7 +386,7 @@ function TeacherPage() {
                             </div>
                           </div>
                         </TableCell>
-                        {[1, 2, 3].map((p) => {
+                        {PARTS.map((pt) => { const p = pt.id;
                           const s = r.parts.get(p);
                           const done = s ? isPartComplete(s, criteria) : false;
                           return (
@@ -433,9 +433,9 @@ function TeacherPage() {
                       </TableRow>
                       {open && (
                         <TableRow key={r.user_id + "-detail"}>
-                          <TableCell colSpan={6} className="bg-secondary/30 p-5">
+                          <TableCell colSpan={PARTS.length + 4} className="bg-secondary/30 p-5">
                             <div className="space-y-4">
-                              {[1, 2, 3].map((p) => {
+                              {PARTS.map((pt) => { const p = pt.id;
                                 const s = r.parts.get(p);
                                 const part = PARTS.find((x) => x.id === p)!;
                                 return (
@@ -448,7 +448,7 @@ function TeacherPage() {
                                         <ScoreRow
                                           label="어휘"
                                           answers={s.vocab_answers}
-                                          items={part.vocab.map((v) => ({ key: v.word, answer: v.answer }))}
+                                          items={(part.vocab ?? []).map((v) => ({ key: v.word, answer: v.answer }))}
                                         />
                                         <ScoreRow
                                           label="문법"
