@@ -306,7 +306,7 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
       {/* Save bar */}
       <div className="sticky bottom-4 z-30 mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur">
         <SaveStatusIndicator status={saveStatus} error={saveError} lastSavedAt={lastSavedAt} />
-        <Button onClick={save} disabled={saveStatus === "saving"} size="lg">
+        <Button onClick={() => save()} disabled={saveStatus === "saving"} size="lg">
           <Save className="mr-2 h-4 w-4" />
           {saveStatus === "saving" ? "저장 중..." : "저장하기"}
         </Button>
