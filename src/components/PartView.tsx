@@ -75,7 +75,7 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
       });
   }, [user, partId]);
 
-  const save = useCallback(async () => {
+  const save = useCallback(async (opts?: { silent?: boolean }) => {
     if (!user) return;
     setSaveStatus("saving");
     setSaveError(null);
@@ -99,6 +99,7 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
       setSaveStatus("success");
       setLastSavedAt(new Date().toISOString());
       setDirty(false);
+      if (!opts?.silent) toast.success("저장되었어요 ✓");
       refresh();
     }
   }, [user, partId, vocab, grammar, reflection, inquiry, refresh]);
@@ -113,7 +114,7 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
   useEffect(() => {
     if (!dirty) return;
     const id = setTimeout(() => {
-      void save();
+      void save({ silent: true });
     }, 3000);
     return () => clearTimeout(id);
   }, [dirty, save]);
