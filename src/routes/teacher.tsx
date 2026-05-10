@@ -183,8 +183,8 @@ function TeacherPage() {
           if (filterStatus === "complete") return s && isPartComplete(s, criteria);
           if (filterStatus === "incomplete") return s && !isPartComplete(s, criteria);
         } else {
-          if (filterStatus === "complete") return r.completed === 3;
-          if (filterStatus === "incomplete") return r.completed > 0 && r.completed < 3;
+          if (filterStatus === "complete") return r.completed === PARTS.length;
+          if (filterStatus === "incomplete") return r.completed > 0 && r.completed < PARTS.length;
           if (filterStatus === "none") return r.completed === 0 && r.parts.size === 0;
         }
         return true;
