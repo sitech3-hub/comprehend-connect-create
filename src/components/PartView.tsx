@@ -291,6 +291,22 @@ export function PartView({ partId }: { partId: 1 | 2 | 3 | 4 }) {
             )}
           </div>
 
+          {part.reflectionModel && (
+            <details className="mt-4 rounded-xl border border-inquiry-foreground/15 bg-background/60 p-4 [&_summary::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-semibold text-inquiry-foreground">
+                <span>📝 {part.reflectionModel.title} · 펼쳐 보기</span>
+                <span className="text-xs font-normal text-muted-foreground">click</span>
+              </summary>
+              <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-foreground">
+                {part.reflectionModel.body}
+              </p>
+              {part.reflectionModel.note && (
+                <p className="mt-3 rounded-md bg-muted/60 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+                  💡 {part.reflectionModel.note}
+                </p>
+              )}
+            </details>
+          )}
           <Textarea
             value={reflection}
             onChange={(e) => setReflection(e.target.value)}
