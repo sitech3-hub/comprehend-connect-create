@@ -14,6 +14,7 @@ export type Part = {
   reflectionPrompt?: string;
   reflectionConcepts?: string[];
   reflectionKeywords?: string[];
+  reflectionModel?: { title: string; body: string; note?: string };
 };
 
 export const PARTS: Part[] = [
@@ -107,6 +108,12 @@ export const PARTS: Part[] = [
       "agricultural land", "cultural identity", "future generations",
       "personally", "I believe that", "for example",
     ],
+    reflectionModel: {
+      title: "예시 글 (Modeling)",
+      body:
+        "Personally, I believe that food is truly the essence of life because it shapes both our culture and our future. In my family, sharing traditional Korean meals connects me to my cultural identity, but I also realize that my daily choices affect the planet. For example, eating red meat every day adds to greenhouse gas emissions and uses too much agricultural land. To build a more sustainable diet, I have started having one meatless day each week and finishing the food on my plate. These small actions may seem minor, but I think they show responsibility toward future generations and the environment we all share.",
+      note: "위 글은 6문장, 약 100단어로 핵심 개념(Sustainability, Identity, Responsibility)과 키워드를 자연스럽게 포함한 예시입니다. 그대로 베끼지 말고, 자신의 경험으로 바꿔 써 보세요.",
+    },
   },
   {
     id: 2,
@@ -200,6 +207,12 @@ export const PARTS: Part[] = [
       "cost-effective", "barrier", "overcome", "win the public over",
       "in my opinion", "however", "on the other hand",
     ],
+    reflectionModel: {
+      title: "예시 글 (Modeling)",
+      body:
+        "In my opinion, I would be willing to try lab-grown meat, but eating insects still feels like a real barrier for me. Lab-grown meat looks and tastes similar to conventional meat, so it does not strongly clash with my cultural identity, and it can be a powerful alternative protein for the planet. Insects, however, carry a strong negative image in Korea, even though insect flour is cost-effective and rich in nutrients. On the other hand, I think this image can be overcome if companies hide the original shape and focus on familiar foods like cookies or noodles. Innovation always meets resistance at first, but tradition can slowly change when people see clear benefits for health and the environment.",
+      note: "위 글은 5문장, 약 110단어로 'Innovation–Tradition–Cultural Identity'를 연결한 예시입니다. 자신의 입장(찬성/반대/조건부)을 분명히 정한 뒤 근거를 본문 어휘로 풀어 보세요.",
+    },
   },
   {
     id: 3,
@@ -293,6 +306,12 @@ export const PARTS: Part[] = [
       "natural disaster", "global warming", "individual diet",
       "as a global citizen", "I will", "step forward", "the unfamiliar",
     ],
+    reflectionModel: {
+      title: "예시 글 (Modeling)",
+      body:
+        "To me, becoming familiar with the unfamiliar means being open to changes that protect our shared future. As a global citizen, I cannot ignore that my individual diet is connected to global warming and to people who suffer from natural disasters. For example, 3D printed food can deliver customized nutrients to areas that are hard to reach, and algae are great at trapping carbon while growing without farmland. I used to think these foods were strange, but now I see them as a real step forward for sustainability. From this week, I will try plant-based meals twice a week and learn one new recipe using algae or alternative ingredients. Small changes in my plate are also small changes in the planet, and that is a responsibility I want to take.",
+      note: "위 글은 6문장, 약 130단어로 'Change–Responsibility–Global Citizenship'을 잇는 예시입니다. 마지막 문장에는 자신만의 구체적인 실천 약속을 한 가지 꼭 넣어 보세요.",
+    },
   },
   {
     id: 4,
