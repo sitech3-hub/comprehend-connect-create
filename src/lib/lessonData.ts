@@ -306,6 +306,12 @@ export const PARTS: Part[] = [
       "natural disaster", "global warming", "individual diet",
       "as a global citizen", "I will", "step forward", "the unfamiliar",
     ],
+    reflectionModel: {
+      title: "예시 글 (Modeling)",
+      body:
+        "To me, becoming familiar with the unfamiliar means being open to changes that protect our shared future. As a global citizen, I cannot ignore that my individual diet is connected to global warming and to people who suffer from natural disasters. For example, 3D printed food can deliver customized nutrients to areas that are hard to reach, and algae are great at trapping carbon while growing without farmland. I used to think these foods were strange, but now I see them as a real step forward for sustainability. From this week, I will try plant-based meals twice a week and learn one new recipe using algae or alternative ingredients. Small changes in my plate are also small changes in the planet, and that is a responsibility I want to take.",
+      note: "위 글은 6문장, 약 130단어로 'Change–Responsibility–Global Citizenship'을 잇는 예시입니다. 마지막 문장에는 자신만의 구체적인 실천 약속을 한 가지 꼭 넣어 보세요.",
+    },
   },
   {
     id: 4,
